@@ -1,9 +1,19 @@
+import os
+
 import tensorflow as tf
 import random
 
-from tensorflow.examples.tutorials.mnist import input_data
+#from tensorflow.examples.tutorials.mnist import input_data
+#mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
 
-mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
+#set CSV file list
+input_path = '/Users/Soohyun/PycharmProjects/MissingPredict/input_data'
+file_list = os.listdir(input_path)
+input_queue = tf.train.string_input_producer(
+    ['file_list.in_2015.csv','file_list.in_2016.csv'], shuffle=False, name='input_queue')
+
+reader = tf.TextLineReader()
+key, value = reader.read(input_queue)
 
 tf.reset_default_graph()
 tf.set_random_seed(1234)
