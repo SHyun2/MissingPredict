@@ -5,7 +5,6 @@ import tensorflow as tf
 
 
 
-output_path = '/Users/Soohyun/PycharmProjects/MissingPredict/output_data/'
 #input_data = np.loadtxt('input_path' + 'in_2015.csv', delimiter=',', dtype=np.float32)
 #output_data = np.loadtxt('output_path' + 'out_2015.csv', delimiter=',', dtype=np.float32)
 
@@ -17,7 +16,7 @@ output_path = '/Users/Soohyun/PycharmProjects/MissingPredict/output_data/'
 #x_data = training_data[:, 0:4]
 #y_data = training_data[:, 5:7]
 def csv2list(filename):
-    input_path = '/Users/Soohyun/PycharmProjects/MissingPredict/input_data/'
+    input_path = '/Users/Soohyun/PycharmProjects/MissingPredict/'
     lists = []
     file = open(input_path+filename, 'r', encoding='UTF8')
     while True:
@@ -29,7 +28,8 @@ def csv2list(filename):
             break
     return lists
 
-training_data_list = csv2list("in_2015.csv")
+training_data_list = csv2list("training_data.csv")
+test_data_list = csv2list("test_data.csv")
 
 training_data = np.array(training_data_list)
 x_training = training_data[0:, :5]
@@ -38,12 +38,14 @@ xs = x_training.tolist()
 ys = y_training.tolist()
 
 
+
+
 # DNN 모델과 최적화 함수에 따라 변경 필요.
 # cost 값이 작아지면 learning rate 도 작게 변경해보면 좋음.
 # 0.1 -> 0.01 -> 0.001
-learning_rate = 0.1
+learning_rate = 0.001
 # 15 -> 30
-training_cnt = 200
+training_cnt = 100
 batch_size = 150
 
 # data set
@@ -81,19 +83,19 @@ L2 = tf.nn.relu(tf.matmul(L1, W2) + b2)
 L2 = tf.nn.dropout(L2, keep_prob=keep_prob)
 
 
-W3 = tf.get_variable("W3", shape=[4, 3],
+W3 = tf.get_variable("W3", shape=[4, 4],
                      initializer=tf.keras.initializers.he_normal())
-b3 = tf.Variable(tf.random_normal([3]))
+b3 = tf.Variable(tf.random_normal([4]))
 
-"""
+
 L3 = tf.nn.relu(tf.matmul(L2, W3) + b3)
 L3 = tf.nn.dropout(L3, keep_prob=keep_prob)
 
-W4 = tf.get_variable("W4", shape=[3, 3],
+W4 = tf.get_variable("W4", shape=[4, 3],
                      initializer=tf.keras.initializers.he_normal())
 b4 = tf.Variable(tf.random_normal([3]))
 
-
+"""
 L4 = tf.nn.relu(tf.matmul(L3, W4) + b4)
 L4 = tf.nn.dropout(L4, keep_prob=keep_prob)
 
@@ -102,16 +104,18 @@ W5 = tf.get_variable("W5", shape=[512, 10],
 b5 = tf.Variable(tf.random_normal([10]))
 """
 
-logits = tf.matmul(L2, W3) + b3
+logits = tf.matmul(L3, W4) + b4
 cost = tf.reduce_mean(tf.square(logits -Y))
 # 현재까지 연구된 최적화 함수중 가장 성능이 좋다고 평가됨.
 # Adam Optimizer
 optimizer = tf.train.AdamOptimizer(learning_rate)
 op_train = optimizer.minimize(cost)
 
-pred = tf.nn.softmax(logits)
+#output layer
+pred = tf.nn.relu(logits)
 prediction = tf.argmax(pred, 1)
 true_Y = tf.argmax(Y, 1)
+
 accuracy = tf.reduce_mean(tf.cast(tf.equal(prediction, true_Y), dtype=tf.float32))
 
 sess = tf.Session()
@@ -137,18 +141,33 @@ for epoch in range(training_cnt):
 print('Learning Finished!')
 
 
-"""
+
 # 테스트 구간에서는 drop out 에 사용될 값을 1로 설정함.
+
+
+test_data = np.array(test_data_list)
+x_testing = test_data[1:, :5]
+y_testing = test_data[1:, 5:]
+x_test = x_testing.tolist()
+y_test = y_testing.tolist()
+
+r = np.random.randint(1, len(x_test)-1)
+print(r)
+
 print('Accuracy(train):', sess.run(accuracy, feed_dict={
       X: batch_xs, Y: batch_ys, keep_prob: 1.0}))
-#
 print('Accuracy(test):', sess.run(accuracy, feed_dict={
-      X: mnist.test.images, Y: mnist.test.labels, keep_prob: 1.0}))
+      X: x_test, Y: y_test, keep_prob: 1.0}))
 
-r = random.randint(0, mnist.test.num_examples - 1)
-print("Label: ", sess.run(tf.argmax(mnist.test.labels[r:r + 1], 1)))
-print("Prediction: ", sess.run(
-    prediction, feed_dict={X: mnist.test.images[r:r + 1], keep_prob: 1.0}))
-"""
+
+x_sample = test_data[r:r+1, :5]
+y_sample = test_data[r:r+1, 5:]
+x_sample_list = x_sample.tolist()
+y_sample_list = y_sample.tolist()
+
+
+print("Label: ", y_sample_list)
+print("Prediction: ", sess.run(pred, feed_dict={X: x_sample_list, keep_prob: 1.0}))
+
 
 
