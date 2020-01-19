@@ -1,5 +1,9 @@
 import os
-
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+from matplotlib import rc
 import tensorflow as tf
 import random
 
@@ -7,21 +11,22 @@ import random
 #mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
 
 #set CSV file list
-input_path = '/Users/Soohyun/PycharmProjects/MissingPredict/input_data'
-file_list = os.listdir(input_path)
-input_queue = tf.train.string_input_producer(
-    ['file_list.in_2015.csv','file_list.in_2016.csv'], shuffle=False, name='input_queue')
+input_path = '/Users/Soohyun/PycharmProjects/MissingPredict/input_data/'
+output_path = '/Users/Soohyun/PycharmProjects/MissingPredict/output_data/'
+#input_data = np.loadtxt('input_path' + 'in_2015.csv', delimiter=',', dtype=np.float32)
+#output_data = np.loadtxt('output_path' + 'out_2015.csv', delimiter=',', dtype=np.float32)
+input_data = pd.read_csv('input_path'+'in_2015.csv')
+output_data = pd.read_csv('output_path'+'out_2015.csv')
 
-reader = tf.TextLineReader()
-key, value = reader.read(input_queue)
+f = sns.countplot(x='성별', data = input_data)
+f.set_title("성별 발생 빈도")
+plt.xlabel("")
 
-tf.reset_default_graph()
-tf.set_random_seed(1234)
-
+"""
 # DNN 모델과 최적화 함수에 따라 변경 필요.
 # cost 값이 작아지면 learning rate 도 작게 변경해보면 좋음.
 # 0.1 -> 0.01 -> 0.001
-learning_rate = 0.001
+learning_rate = 0.1
 # 15 -> 30
 training_cnt = 30
 batch_size = 100
@@ -117,3 +122,4 @@ r = random.randint(0, mnist.test.num_examples - 1)
 print("Label: ", sess.run(tf.argmax(mnist.test.labels[r:r + 1], 1)))
 print("Prediction: ", sess.run(
     prediction, feed_dict={X: mnist.test.images[r:r + 1], keep_prob: 1.0}))
+"""
